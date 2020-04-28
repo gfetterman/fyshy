@@ -49,6 +49,13 @@ SIZE_UP_THRESHOLDS = {4: 1.5, 8: 2, 16: 3, 32: 4}
 BASE_SCORE = 100
 WIN_SIZE = 32
 
+# icons
+
+WINDOW_ICON_IMG = 'imgs/fish_window_icon.png'
+PLAYER_FISH_IMG = 'imgs/fish.png'
+ENEMY_FISH_IMG = 'imgs/other_fish.png'
+DEAD_FISH_IMG = 'imgs/fish_dead.png'
+
 class Fish:
     def __init__(self,
                  icon,
@@ -182,7 +189,7 @@ def lose_screen(display_surface):
     display_surface.fill(RED)
     x = display_surface.get_width() // 2
     y = display_surface.get_height() // 2 - END_SPLASH_PLAYER_OFFSET
-    dead_fish = Fish(pygame.image.load('fish_dead.png'), x, y)
+    dead_fish = Fish(pygame.image.load(DEAD_FISH_IMG), x, y)
     display_surface.blit(dead_fish.icon, dead_fish.top_left)
     font = pygame.font.Font(None, END_SPLASH_FONT_SIZE)
     text_surface = font.render('You got eaten', True, BLACK)
@@ -208,16 +215,17 @@ def repopulate_enemy_fish(enemy_fish, prototype, count=MAX_ENEMY_FISH):
 def main():
     pygame.init()
     display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    pygame.display.set_icon(pygame.image.load('fish_window_icon.png'))
-    enemy_prototype = pygame.image.load('other_fish.png')
-    player_fish = Fish(pygame.image.load('fish.png'))
+    pygame.display.set_icon(pygame.image.load(WINDOW_ICON_IMG))
+    player_prototype = pygame.image.load(PLAYER_FISH_IMG)
+    enemy_prototype = pygame.image.load(ENEMY_FISH_IMG)
+    player_fish = Fish(player_prototype)
     enemy_fish = repopulate_enemy_fish([], enemy_prototype)
-    pygame.display.set_caption('Small Pond')
+    pygame.display.set_caption('Fishpy')
     frame_clock = pygame.time.Clock()
     while True:
         if player_fish.fish_eaten >= WIN_SIZE:
             win_screen(display_surface, player_fish)
-            player_fish = Fish(pygame.image.load('fish.png'))
+            player_fish = Fish(player_prototype)
             enemy_fish = repopulate_enemy_fish([], enemy_prototype)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -234,7 +242,7 @@ def main():
         survived = handle_collisions(player_fish, enemy_fish)
         if not survived:
             lose_screen(display_surface)
-            player_fish = Fish(pygame.image.load('fish.png'))
+            player_fish = Fish(player_prototype)
             enemy_fish = []
         enemy_fish = repopulate_enemy_fish(enemy_fish, enemy_prototype)
         draw_pond(display_surface, player_fish, enemy_fish)
