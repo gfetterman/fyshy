@@ -1,8 +1,8 @@
 # fishpy
 
 fishpy is a clone of the old Flash game "Fishy", where you control a fish trying
-to survive in a dangerous pond. You eat anything smaller than you are, and you
-avoid anything bigger.
+to survive in a dangerous pond by eating smaller neighbors and avoiding bigger
+ones.
 
 ## Installation
 
@@ -20,11 +20,23 @@ $ pip install pygame
 
 (You could use a conda environment if you like.)
 
-To play:
+To start:
 
 ```shell
 $ python fishpy.py
 ```
+
+## How to play
+
+The arrow keys move the yellow fish around the screen.
+
+Swim into other fish to eat them. You can safely eat anything smaller than
+yourself, but anything bigger will eat you instead.
+
+You get bigger when you've eaten a certain number of fish.
+
+Eating bigger fish yields a bigger score, displayed at the top in the center.
+The score doesn't affect anything, though.
 
 ## Notes
 
