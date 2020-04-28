@@ -14,17 +14,19 @@ SCORE_FONT_SIZE = 24
 END_SPLASH_FONT_SIZE = 36
 END_SPLASH_PLAYER_OFFSET = 100
 
-WIN_FLASHES = 10
-WIN_FLASH_DURATION = 200 # ms
+WIN_FLASHES = 5
+WIN_FLASH_DURATION = 500 # ms
 LOSE_SCREEN_DURATION = 2000 # ms
 
 FPS = 30
 
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
+XKCD_CRIMSON = (140, 0, 15)
 XKCD_BABY_BLUE = (162, 207, 254)
+XKCD_CERULEAN = (4, 133, 209)
 BG_COLOR = XKCD_BABY_BLUE
-INVERT_BG_COLOR = BLACK
+INVERT_BG_COLOR = XKCD_CERULEAN
+LOSE_SCREEN_COLOR = XKCD_CRIMSON
 
 KEY_DX2DY2 = {pygame.K_UP: (0, -1),
               pygame.K_DOWN: (0, 1),
@@ -186,7 +188,7 @@ def draw_score(display_surface, player_fish):
         pygame.time.wait(WIN_FLASH_DURATION)
 
 def lose_screen(display_surface):
-    display_surface.fill(RED)
+    display_surface.fill(LOSE_SCREEN_COLOR)
     x = display_surface.get_width() // 2
     y = display_surface.get_height() // 2 - END_SPLASH_PLAYER_OFFSET
     dead_fish = Fish(pygame.image.load(DEAD_FISH_IMG), x, y)
