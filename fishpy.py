@@ -43,6 +43,7 @@ INITIAL_Y = WINDOW_HEIGHT // 2
 
 PLAYER_MAX_SPEED = 3
 PLAYER_ACCELERATION = 1.5
+PLAYER_SPEED_EPSILON = 0.2
 ENEMY_SPEED_RANGE = (2, 5)
 
 MAX_ENEMY_FISH = 16
@@ -119,8 +120,12 @@ class Fish:
         drag_y = self.dy * abs(self.dy) / 30
         self.dx = max(min((self.dx + dx2 - drag_x), self.max_speed),
                       -self.max_speed)
+        if abs(self.dx) < PLAYER_SPEED_EPSILON:
+            self.dx = 0
         self.dy = max(min((self.dy + dy2 - drag_y), self.max_speed),
                       -self.max_speed)
+        if abs(self.dy) < PLAYER_SPEED_EPSILON:
+            self.dy = 0
         self.x = max(min((self.x + self.dx), WINDOW_WIDTH), 0)
         self.y = max(min((self.y + self.dy), WINDOW_HEIGHT), 0)
         if ((dx2 > 0 and self.direction == LEFT) or
