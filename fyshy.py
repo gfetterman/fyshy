@@ -74,7 +74,6 @@ ENEMY_SIZES_COLORS = ((0.25, FISH_COLOR_0),
                       (2.25, FISH_COLOR_5),
                       (3.25, FISH_COLOR_6),
                       (4.5, FISH_COLOR_7))
-ENEMY_COLORS = ((255, 0, 0),)
 SIZE_UP_THRESHOLDS = {4: 1.5, 8: 2, 16: 3, 32: 4}
 BASE_SCORE = 100
 WIN_SIZE = 32
@@ -84,7 +83,12 @@ WIN_SIZE = 32
 WINDOW_ICON_IMG = 'imgs/fish_window_icon.png'
 PLAYER_FISH_IMG = 'imgs/fish.png'
 PLAYER_FISH_WIGGLE_IMG = 'imgs/fish_tail_wiggle.png'
-ENEMY_FISH_IMG = 'imgs/other_fish_white.png'
+PLAYER_FISH_EAT_IMGS = ['imgs/fish_chomp_1.png',
+                        'imgs/fish_chomp_2.png',
+                        'imgs/fish_chomp_3.png',
+                        'imgs/fish_chomp_2.png',
+                        'imgs/fish_chomp_1.png']
+ENEMY_FISH_IMG = 'imgs/enemy_fish_white.png'
 ENEMY_FISH_WIGGLE_IMG = 'imgs/enemy_fish_tail_wiggle_white.png'
 DEAD_FISH_IMG = 'imgs/fish_dead.png'
 
@@ -93,6 +97,7 @@ ENEMY_FRAME_STRETCH = 3
 class Fish:
     def __init__(self,
                  icons,
+                 eat_frames,
                  x=INITIAL_X,
                  y=INITIAL_Y,
                  direction=INITIAL_DIRECTION,
@@ -105,18 +110,23 @@ class Fish:
         self.dy = 0
         self.acceleration = acceleration
         self.base_icons = icons
+        self.base_eat_frames = eat_frames
         self.base_width, self.base_height = icons[0].get_rect().size
-        self.set_icons(icons)
+        self.set_icons(icons, eat_frames)
         self.max_speed = max_speed
         self.impulses = {key: False for key in KEY_DX2DY2}
         self.fish_eaten = 0
         self.score = 0
+        self.eat_animation = None
 
-    def set_icons(self, icons):
-        flipped = [pygame.transform.flip(icon, True, False) for icon in icons]
-        self.icons = icons if self.direction == LEFT else flipped
-        self.flipped_icons = flipped if self.direction == LEFT else icons
-        self.width, self.height = icons[0].get_rect().size
+    def set_icons(self, swim, eat):
+        flip_swim = [pygame.transform.flip(icon, True, False) for icon in swim]
+        flip_eat = [pygame.transform.flip(icon, True, False) for icon in eat]
+        self.icons = swim if self.direction == LEFT else flip_swim
+        self.flipped_icons = flip_swim if self.direction == LEFT else swim
+        self.eat_frames = eat if self.direction == LEFT else flip_eat
+        self.flipped_eat_frames = flip_eat if self.direction == LEFT else eat
+        self.width, self.height = swim[0].get_rect().size
         self.half_width = self.width // 2
         self.half_height = self.height // 2
         self.curr_icon_idx = 0    @property
@@ -125,7 +135,10 @@ class Fish:
 
     @property
     def curr_icon(self):
-        return self.icons[self.curr_icon_idx]
+        if self.eat_animation is None:
+            return self.icons[self.curr_icon_idx]
+        else:
+            return self.eat_frames[self.eat_animation]
     @property
     def top_left(self):
         return (round(self.x - self.half_width),
@@ -158,25 +171,34 @@ class Fish:
             (dx2 < 0 and self.direction == RIGHT)):
             self.direction = LEFT if self.direction == RIGHT else RIGHT
             self.icons, self.flipped_icons = self.flipped_icons, self.icons
+            self.eat_frames, self.flipped_eat_frames = (self.flipped_eat_frames,
+                                                        self.eat_frames)
         if dx2:
             self.curr_icon_idx = (self.curr_icon_idx + 1) % len(self.icons)
+        if self.eat_animation is not None:
+            self.eat_animation += 1
+            if self.eat_animation == len(self.eat_frames):
+                self.eat_animation = None
 
     def eat(self, fish):
         self.fish_eaten += 1
         self.score += fish.score
+        self.eat_animation = 0
         if self.fish_eaten in SIZE_UP_THRESHOLDS:
             size_up_proportion = SIZE_UP_THRESHOLDS[self.fish_eaten]
             new_width = int(self.base_width * size_up_proportion)
             new_height = int(self.base_height * size_up_proportion)
-            new_icons = [pygame.transform.smoothscale(icon,
-                                                      (new_width, new_height))
+            new_dims = (new_width, new_height)
+            new_icons = [pygame.transform.smoothscale(icon, new_dims)
                          for icon in self.base_icons]
-            self.set_icons(new_icons)
+            new_eat_frames = [pygame.transform.smoothscale(icon, new_dims)
+                              for icon in self.base_eat_frames]
+            self.set_icons(new_icons, new_eat_frames)
 class EnemyFish(Fish):
-    def __init__(self, icons, x, y, direction, max_speed, size):
+    def __init__(self, icons, eat_frames, x, y, direction, max_speed, size):
         icons = list(it.chain.from_iterable(it.repeat(icon, ENEMY_FRAME_STRETCH)
                                             for icon in icons))
-        super().__init__(icons, x, y, direction, max_speed)
+        super().__init__(icons, [], x, y, direction, max_speed)
         self.size = size
         self.score = size * BASE_SCORE
         self.curr_frame_idx = random.randrange(len(icons))
@@ -240,7 +262,7 @@ def lose_screen(display_surface):
     display_surface.fill(LOSE_SCREEN_COLOR)
     x = display_surface.get_width() // 2
     y = display_surface.get_height() // 2 - END_SPLASH_PLAYER_OFFSET
-    dead_fish = Fish([pygame.image.load(DEAD_FISH_IMG)], x, y)
+    dead_fish = Fish([pygame.image.load(DEAD_FISH_IMG)], [], x, y)
     display_surface.blit(dead_fish.curr_icon, dead_fish.top_left)
     font = pygame.font.Font(None, END_SPLASH_FONT_SIZE)
     text_surface = font.render('You got eaten', True, BLACK)
@@ -262,7 +284,7 @@ def spawn_enemy_fish(prototypes):
         icon.fill(color, special_flags=pygame.BLEND_MULT)
     icons = [pygame.transform.smoothscale(icon, (width, height))
              for icon in icons]
-    return EnemyFish(icons, x, y, direction, speed, size)
+    return EnemyFish(icons, [], x, y, direction, speed, size)
 
 def repopulate_enemy_fish(enemy_fish, prototypes, count=MAX_ENEMY_FISH):
     return (enemy_fish + [spawn_enemy_fish(prototypes)
@@ -274,16 +296,17 @@ def main():
     pygame.display.set_icon(pygame.image.load(WINDOW_ICON_IMG))
     player_prototypes = [pygame.image.load(PLAYER_FISH_IMG),
                          pygame.image.load(PLAYER_FISH_WIGGLE_IMG)]
+    player_eating = [pygame.image.load(file) for file in PLAYER_FISH_EAT_IMGS]
     enemy_prototypes = [pygame.image.load(ENEMY_FISH_IMG),
                         pygame.image.load(ENEMY_FISH_WIGGLE_IMG)]
-    player_fish = Fish(player_prototypes)
+    player_fish = Fish(player_prototypes, player_eating)
     enemy_fish = repopulate_enemy_fish([], enemy_prototypes)
     pygame.display.set_caption('Fishpy')
     frame_clock = pygame.time.Clock()
     while True:
         if player_fish.fish_eaten >= WIN_SIZE:
             win_screen(display_surface, player_fish)
-            player_fish = Fish(player_prototypes)
+            player_fish = Fish(player_prototypes, player_eating)
             enemy_fish = repopulate_enemy_fish([], enemy_prototypes)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -300,7 +323,7 @@ def main():
         survived = handle_collisions(player_fish, enemy_fish)
         if not survived:
             lose_screen(display_surface)
-            player_fish = Fish(player_prototypes)
+            player_fish = Fish(player_prototypes, player_eating)
             enemy_fish = []
         enemy_fish = repopulate_enemy_fish(enemy_fish, enemy_prototypes)
         draw_pond(display_surface, player_fish, enemy_fish)

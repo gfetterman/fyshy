@@ -1,18 +1,18 @@
-# fishpy
+# fyshy
 
-fishpy is a clone of the old Flash game "Fishy", where you control a fish trying
+fyshy is a clone of the old Flash game "Fishy", where you control a fish trying
 to survive in a dangerous pond by eating smaller neighbors and avoiding bigger
 ones.
 
 ## Installation
 
-fishpy runs under Python 3. There is no installer.
+fyshy runs under Python 3. There is no installer.
 
 ```shell
-$ git clone https://github.com/gfetterman/fishpy.git
+$ git clone https://github.com/gfetterman/fyshy.git
 ```
 
-fishpy requires pygame to run.
+fyshy requires pygame to run.
 
 ```shell
 $ pip install pygame
@@ -23,7 +23,7 @@ $ pip install pygame
 To start:
 
 ```shell
-$ python fishpy.py
+$ python fyshy.py
 ```
 
 ## How to play
@@ -45,5 +45,8 @@ wanted something to build to start fiddling with pygame, so here you are.
 
 It's a good deal shorter than the original, mostly so I could test all of the
 parts without having to play for ten minutes.
+
+Colors were chosen with the help of the spectacular
+[iWantHue](https://medialab.github.io/iwanthue/).
 
 (Yes, I made the little fish icons myself. Yes, I used Paint.)
