@@ -93,6 +93,10 @@ class Fish:
         self.half_width = self.width // 2
         self.half_height = self.height // 2
         self.curr_icon_idx = 0    @property
+    def tail_x(self):
+        return self.x - (self.half_width * self.direction)
+
+    @property
     def curr_icon(self):
         return self.icons[self.curr_icon_idx]
     @property
@@ -147,7 +151,7 @@ class Fish:
         self.curr_frame_idx = random.randrange(len(icons))
 
     def update_location(self):
-        self.x = (self.x + self.direction * self.max_speed) % WINDOW_WIDTH
+        self.x = self.x + self.direction * self.max_speed
         self.curr_icon_idx = (self.curr_icon_idx + 1) % len(self.icons)
 def overlap(first, second):
     return (first[0] <= second[1] and first[1] >= second[0])
@@ -157,9 +161,8 @@ def hitbox_overlap(first, second):
     return (overlap((first_left, first_right), (second_left, second_right)) and
             overlap((first_bottom, first_top), (second_bottom, second_top)))
 def overlap_edges(fish):
-    back_edge = fish.tail_x
-    return ((back_edge <= 0 and fish.direction == LEFT) or
-            (back_edge >= WINDOW_WIDTH and fish.direction == RIGHT))
+    return ((fish.direction == LEFT and fish.tail_x <= 0) or
+            (fish.direction == RIGHT and fish.tail_x >= WINDOW_WIDTH))
 def handle_collisions(player_fish, other_fish):
     to_remove = []
     for fish_idx, fish in enumerate(other_fish):
@@ -176,6 +179,7 @@ def handle_collisions(player_fish, other_fish):
     return True
 def draw_pond(display_surface, player_fish, other_fish):
     display_surface.fill(BG_COLOR)
+    max_x = display_surface.get_width()
     for fish in other_fish + [player_fish]:
         display_surface.blit(fish.curr_icon, fish.top_left)
 
