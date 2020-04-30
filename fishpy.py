@@ -223,6 +223,7 @@ def spawn_enemy_fish(prototypes):
     width, height = (int(size * dim) for dim in prototypes[0].get_rect().size)
     direction = random.choice((LEFT, RIGHT))
     x = WINDOW_WIDTH if direction == LEFT else 0
+    x -= direction * width // 2
     y = random.randrange(WINDOW_HEIGHT)
     speed = random.uniform(*ENEMY_SPEED_RANGE)
     icons = [pygame.transform.smoothscale(icon, (width, height))
