@@ -29,6 +29,24 @@ BG_COLOR = XKCD_BABY_BLUE
 INVERT_BG_COLOR = XKCD_CERULEAN
 LOSE_SCREEN_COLOR = XKCD_CRIMSON
 
+IWH_PALETTE_0 = (202,  82,  89)
+IWH_PALETTE_1 = (201, 126,  62)
+IWH_PALETTE_2 = (152, 150,  62)
+IWH_PALETTE_3 = (103, 178,  70)
+IWH_PALETTE_4 = ( 79, 166, 124)
+IWH_PALETTE_5 = ( 86, 167, 216)
+IWH_PALETTE_6 = (117, 120, 196)
+IWH_PALETTE_7 = (143,  97, 210)
+
+FISH_COLOR_0 = IWH_PALETTE_1
+FISH_COLOR_1 = IWH_PALETTE_1
+FISH_COLOR_2 = IWH_PALETTE_3
+FISH_COLOR_3 = IWH_PALETTE_3
+FISH_COLOR_4 = IWH_PALETTE_5
+FISH_COLOR_5 = IWH_PALETTE_5
+FISH_COLOR_6 = IWH_PALETTE_7
+FISH_COLOR_7 = IWH_PALETTE_7
+
 KEY_DX2DY2 = {pygame.K_UP: (0, -1),
               pygame.K_DOWN: (0, 1),
               pygame.K_LEFT: (-1, 0),
@@ -48,7 +66,15 @@ ENEMY_SPEED_RANGE = (2, 5)
 
 MAX_ENEMY_FISH = 16
 ALLOWED_OVERLAP = 0.8
-ENEMY_SIZES = (0.25, 0.5, 0.75, 1.25, 1.75, 2.25, 3.25, 4.5)
+ENEMY_SIZES_COLORS = ((0.25, FISH_COLOR_0),
+                      (0.5, FISH_COLOR_1),
+                      (0.75, FISH_COLOR_2),
+                      (1.25, FISH_COLOR_3),
+                      (1.75, FISH_COLOR_4),
+                      (2.25, FISH_COLOR_5),
+                      (3.25, FISH_COLOR_6),
+                      (4.5, FISH_COLOR_7))
+ENEMY_COLORS = ((255, 0, 0),)
 SIZE_UP_THRESHOLDS = {4: 1.5, 8: 2, 16: 3, 32: 4}
 BASE_SCORE = 100
 WIN_SIZE = 32
@@ -58,8 +84,8 @@ WIN_SIZE = 32
 WINDOW_ICON_IMG = 'imgs/fish_window_icon.png'
 PLAYER_FISH_IMG = 'imgs/fish.png'
 PLAYER_FISH_WIGGLE_IMG = 'imgs/fish_tail_wiggle.png'
-ENEMY_FISH_IMG = 'imgs/other_fish.png'
-ENEMY_FISH_WIGGLE_IMG = 'imgs/enemy_fish_tail_wiggle.png'
+ENEMY_FISH_IMG = 'imgs/other_fish_white.png'
+ENEMY_FISH_WIGGLE_IMG = 'imgs/enemy_fish_tail_wiggle_white.png'
 DEAD_FISH_IMG = 'imgs/fish_dead.png'
 
 ENEMY_FRAME_STRETCH = 3
@@ -224,15 +250,18 @@ def lose_screen(display_surface):
     pygame.time.wait(LOSE_SCREEN_DURATION)
 
 def spawn_enemy_fish(prototypes):
-    size = random.choice(ENEMY_SIZES)
+    size, color = random.choice(ENEMY_SIZES_COLORS)
     width, height = (int(size * dim) for dim in prototypes[0].get_rect().size)
     direction = random.choice((LEFT, RIGHT))
     x = WINDOW_WIDTH if direction == LEFT else 0
     x -= direction * width // 2
     y = random.randrange(WINDOW_HEIGHT)
     speed = random.uniform(*ENEMY_SPEED_RANGE)
+    icons = [icon.copy() for icon in prototypes]
+    for icon in icons:
+        icon.fill(color, special_flags=pygame.BLEND_MULT)
     icons = [pygame.transform.smoothscale(icon, (width, height))
-             for icon in prototypes]
+             for icon in icons]
     return EnemyFish(icons, x, y, direction, speed, size)
 
 def repopulate_enemy_fish(enemy_fish, prototypes, count=MAX_ENEMY_FISH):
