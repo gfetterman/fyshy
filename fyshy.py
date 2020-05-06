@@ -301,7 +301,7 @@ def main():
                         pygame.image.load(ENEMY_FISH_WIGGLE_IMG)]
     player_fish = Fish(player_prototypes, player_eating)
     enemy_fish = repopulate_enemy_fish([], enemy_prototypes)
-    pygame.display.set_caption('Fishpy')
+    pygame.display.set_caption('Fyshy')
     frame_clock = pygame.time.Clock()
     while True:
         if player_fish.fish_eaten >= WIN_SIZE:
